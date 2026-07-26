@@ -14,6 +14,7 @@ An interactive, high-performance, mobile-first web application designed for revi
 - 📱 **Mobile-First Responsive UI**: Optimized touch targets, glassmorphism aesthetics, dark/light mode toggle, and collapsible cards (**closed by default** for easy scanning).
 - 🚀 **Dynamic Data Fetching**: Asynchronously fetches questions & answers directly from `public/question.json` using the Fetch API with smooth loading spinners and error-retry handling.
 - 🔍 **Real-Time Text Search**: Live search matching across question titles, answer content, categories, and tags with instant query clearing.
+- 🔤 **Dynamic Font Resizing (+ / -)**: Adjust text size dynamically (`14px` to `22px`) with persistent user preference saved in `localStorage`.
 - 🏷️ **Tag Filtering & Tag Drawer**:
   - Horizontal scrollable pill bar for fast tag toggling.
   - Full-screen tag browser modal with tag search and frequency count badges.

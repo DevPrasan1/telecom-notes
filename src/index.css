@@ -1,4 +1,5 @@
 :root {
+  --base-font-size: 16px;
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
@@ -172,6 +173,40 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* Font Size Control Group */
+.font-control-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 2px;
+}
+
+.font-control-group .font-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+}
+
+.font-control-group .font-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.font-size-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 32px;
+  text-align: center;
+  user-select: none;
+  font-family: var(--font-mono);
 }
 
 /* Buttons */
@@ -510,7 +545,7 @@ body {
 }
 
 .question-title {
-  font-size: 1.125rem;
+  font-size: calc(var(--base-font-size, 16px) * 1.05);
   font-weight: 700;
   line-height: 1.4;
   color: var(--text-primary);
@@ -610,7 +645,7 @@ body {
 
 /* Markdown Styling */
 .markdown-body {
-  font-size: 0.9375rem;
+  font-size: var(--base-font-size, 16px);
   color: var(--text-secondary);
   line-height: 1.7;
 }

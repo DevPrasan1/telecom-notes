@@ -11,7 +11,9 @@ import {
   RotateCcw,
   Layers,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  ZoomIn,
+  ZoomOut
 } from 'lucide-react';
 import QuestionCard from './components/QuestionCard';
 import TagModal from './components/TagModal';
@@ -70,11 +72,41 @@ export default function App() {
     fetchQuestions();
   }, []);
 
+  const FONT_SIZES = [14, 15, 16, 18, 20, 22];
+  const [fontSize, setFontSize] = useState(() => {
+    const saved = localStorage.getItem('telecom_font_size');
+    return saved !== null ? Number(saved) : 16;
+  });
+
   // Sync theme with DOM root and localStorage
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('5g_qa_theme', theme);
   }, [theme]);
+
+  // Sync font size with DOM root CSS property and localStorage
+  useEffect(() => {
+    document.documentElement.style.setProperty('--base-font-size', `${fontSize}px`);
+    localStorage.setItem('telecom_font_size', fontSize.toString());
+  }, [fontSize]);
+
+  const decreaseFontSize = () => {
+    const currentIndex = FONT_SIZES.indexOf(fontSize);
+    if (currentIndex > 0) {
+      setFontSize(FONT_SIZES[currentIndex - 1]);
+    } else if (currentIndex === -1 && fontSize > FONT_SIZES[0]) {
+      setFontSize(14);
+    }
+  };
+
+  const increaseFontSize = () => {
+    const currentIndex = FONT_SIZES.indexOf(fontSize);
+    if (currentIndex >= 0 && currentIndex < FONT_SIZES.length - 1) {
+      setFontSize(FONT_SIZES[currentIndex + 1]);
+    } else if (currentIndex === -1 && fontSize < FONT_SIZES[FONT_SIZES.length - 1]) {
+      setFontSize(18);
+    }
+  };
 
   // Sync bookmarks with localStorage
   useEffect(() => {
@@ -206,7 +238,7 @@ export default function App() {
             <div>
               <h1 className="brand-title">Telecom Notes</h1>
               <p className="brand-subtitle">
-                Protocol Q&A Reference • by{' '}
+                by{' '}
                 <a
                   href="https://github.com/DevPrasan1/telecom-notes"
                   target="_blank"
@@ -220,6 +252,29 @@ export default function App() {
           </div>
 
           <div className="header-controls">
+            <div className="font-control-group" title={`Font size: ${fontSize}px`}>
+              <button
+                type="button"
+                className="icon-btn font-btn"
+                onClick={decreaseFontSize}
+                disabled={fontSize <= FONT_SIZES[0]}
+                title="Decrease font size"
+                aria-label="Decrease font size"
+              >
+                <ZoomOut size={16} />
+              </button>
+              <span className="font-size-badge">{fontSize}px</span>
+              <button
+                type="button"
+                className="icon-btn font-btn"
+                onClick={increaseFontSize}
+                disabled={fontSize >= FONT_SIZES[FONT_SIZES.length - 1]}
+                title="Increase font size"
+                aria-label="Increase font size"
+              >
+                <ZoomIn size={16} />
+              </button>
+            </div>
             <button
               type="button"
               className={`icon-btn ${showBookmarksOnly ? 'active' : ''}`}
