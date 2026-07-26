@@ -2,12 +2,15 @@
 
 An interactive, high-performance, mobile-first web application designed for reviewing 5G Protocol & Telecom interview questions and technical notes.
 
+🔗 **Live Demo**: [https://telecom-notes.netlify.app/](https://telecom-notes.netlify.app/)
+
 ![Stack](https://img.shields.io/badge/React-19-blue) ![Vite](https://img.shields.io/badge/Vite-8-purple) ![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
 
 ## ✨ Features
 
+- ⚡ **Virtual List Optimization**: Integrated `@tanstack/react-virtual` for windowed list virtualization, keeping DOM node count low (~10-15 nodes) regardless of how many hundreds of questions are loaded.
 - 📱 **Mobile-First Responsive UI**: Optimized touch targets, glassmorphism aesthetics, dark/light mode toggle, and collapsible cards (**closed by default** for easy scanning).
 - 🚀 **Dynamic Data Fetching**: Asynchronously fetches questions & answers directly from `public/question.json` using the Fetch API with smooth loading spinners and error-retry handling.
 - 🔍 **Real-Time Text Search**: Live search matching across question titles, answer content, categories, and tags with instant query clearing.

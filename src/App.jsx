@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import QuestionCard from './components/QuestionCard';
 import TagModal from './components/TagModal';
+import VirtualizedQuestionList from './components/VirtualizedQuestionList';
 import './index.css';
 
 export default function App() {
@@ -378,20 +379,14 @@ export default function App() {
             </button>
           </div>
         ) : (
-          <div className="questions-list">
-            {filteredQuestions.map((item, idx) => (
-              <QuestionCard
-                key={item.question}
-                item={item}
-                index={idx}
-                isBookmarked={bookmarkedIds.includes(item.question)}
-                onToggleBookmark={handleToggleBookmark}
-                onTagClick={handleToggleTag}
-                selectedTags={selectedTags}
-                forceExpanded={expandAll}
-              />
-            ))}
-          </div>
+          <VirtualizedQuestionList
+            questions={filteredQuestions}
+            bookmarkedIds={bookmarkedIds}
+            onToggleBookmark={handleToggleBookmark}
+            onTagClick={handleToggleTag}
+            selectedTags={selectedTags}
+            expandAll={expandAll}
+          />
         )}
       </main>
 
