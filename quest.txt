@@ -1,0 +1,1259 @@
+# COMPREHENSIVE 5G CU-CP INTERVIEW PREPARATION — RESUME DEEP ANALYSIS
+
+I'll be brutal. Your resume reads strong on the surface, but there are several areas where an experienced interviewer will smell vagueness, buzzword stacking, or shallow ownership. Let's tear it apart line by line.
+
+---
+
+## ⚠️ OVERALL RESUME-LEVEL RED FLAGS (Read This First)
+
+Before diving in, here's what a Principal Architect notices in 30 seconds:
+
+1. **"Architecting" at MTS-III level** — At 5.5 years and MTS-III, you are NOT architecting. You are *implementing* or *contributing to* architecture. Interviewers from Nokia/Samsung/Ericsson will challenge this immediately. Reword to "Contributing to design and implementation."
+2. **"7:1 Cold Standby"** — This is unusual. Most telecom HA is 1:1 or N:1 Active-Standby with checkpointing. 7:1 Cold Standby (no data replication) implies UEs are dropped on failover. Be ready to defend why this design was chosen and its limitations.
+3. **"3GPP Rel 15/16/17"** — Claiming all three is risky unless you can cite *specific* TS numbers and *specific* CRs. Interviewers will ask "What changed in F1AP between Rel-16 and Rel-17?"
+4. **No measurable KPIs** — No latency numbers, no UE capacity, no call rates, no recovery time in seconds. Senior resumes always have numbers.
+5. **"Prisma UE Simulator"** — Niche tool. Be ready to compare with Spirent Landslide, Polaris, Keysight.
+6. **NR-RRC listed but no mention of ASN.1, PER encoding, or RRC state machine work** — Interviewers will probe whether you actually touched RRC PDU encoding or just called APIs.
+7. **No mention of CI/CD, Jenkins, ELK, Prometheus, Grafana** — Cloud-native claim is weakened.
+8. **"XnAP" mentioned once** — Bluff risk. Be ready for Xn handover deep-dives.
+9. **No mention of O-RAN, SMO, E2, A1** — If applying to Rakuten/Mavenir O-RAN roles, this is a gap.
+10. **"E1AP"** — You list it, but E1AP sits between CU-CP and CU-UP. Be ready to explain Bearer Context Setup/Modification/Release in detail.
+
+Now let's dissect each line.
+
+---
+
+## RESUME LINE 1
+
+-----------------------------------
+**RESUME LINE**
+-----------------------------------
+*"Senior 5G RAN Engineer with 5.5+ years of experience architecting and delivering production-grade CU-CP systems for 5G SA/NSA deployments."*
+
+-----------------------------------
+**INTERVIEWER INTENT**
+-----------------------------------
+Verify whether you genuinely understand CU-CP's role, the SA vs NSA differences, and whether "architecting" is justified at your level. They're sniffing for bluff.
+
+-----------------------------------
+**CORE CONCEPTS**
+-----------------------------------
+CU-CP role in gNB-CU/DU split, SA architecture (Option 2), NSA architecture (Option 3/3a/3x), EN-DC, MR-DC, control plane separation from user plane, F1-C interface, E1 interface, NG-C interface, Xn-C interface, production-grade meaning (HA, scale, observability, telemetry, upgrade).
+
+-----------------------------------
+**EXPECTED QUESTIONS**
+-----------------------------------
+
+**Beginner:**
+- What is CU-CP and how does it differ from CU-UP and DU?
+- What is the difference between SA and NSA?
+- Which 3GPP TS defines the CU/DU split?
+
+**Intermediate:**
+- Explain Option 3, 3a, 3x. Which one did your CU-CP support in NSA?
+- In NSA, who is the master node and who is the secondary node? What signaling goes where?
+- Walk me through an EN-DC SgNB Addition procedure end-to-end.
+
+**Advanced:**
+- In Option 3x, where does the bearer split happen and how does CU-CP coordinate with eNB?
+- How does CU-CP handle SCG failure in NSA?
+- What changes in NGAP behavior between SA and NSA from a CU-CP perspective?
+
+**Expert:**
+- In your CU-CP, how did you handle the timing of X2-U/Xn-U tunnel setup during EN-DC bearer addition?
+- Explain how PDCP version negotiation impacts CU-CP signaling in NSA.
+- Describe how CU-CP determines whether to anchor a bearer at MN or SN in MR-DC.
+
+-----------------------------------
+**FOLLOW-UP QUESTIONS**
+-----------------------------------
+- You said "architecting" — show me one architectural decision you owned, the alternatives you rejected, and why.
+- What does "production-grade" mean to you quantitatively? Throughput? Availability? UE capacity?
+- How many UEs per CU-CP pod did your system support?
+- What's your call setup rate (CPS) target and achieved?
+
+-----------------------------------
+**TRAP QUESTIONS**
+-----------------------------------
+- "Isn't CU-CP just the RRC layer renamed?" (Wrong — CU-CP hosts RRC + PDCP-C + the upper portions of NGAP/F1AP/E1AP/XnAP.)
+- "In NSA, does CU-CP terminate NGAP?" (Trap — in NSA Option 3, there's no NGAP toward 5GC; it's S1AP toward EPC. Only in Option 7/SA does NGAP exist.)
+- "Can a single CU-CP serve multiple DUs?" (Yes — 1:N F1 relationship.)
+
+-----------------------------------
+**SCENARIO QUESTIONS**
+-----------------------------------
+- **Production**: A customer reports that 5% of SA UEs fail registration during peak hour. CU-CP logs show NGAP Initial UE Message sent but no Initial Context Setup Request received. Walk me through your debug.
+- **Debugging**: gNB-CU pod runs fine for 12 hours then F1AP SCTP association drops with no logs. How do you investigate?
+- **Scalability**: Your CU-CP supports 10k UEs. Customer wants 30k. What changes?
+- **Failure recovery**: AMF restarts. What happens to all UEs anchored on your CU-CP?
+- **Kubernetes**: CU-CP pod restarts mid-call. How are UEs released?
+- **Protocol**: AMF sends NGAP UE Context Release Command with cause "User Inactivity." What does CU-CP do exactly?
+
+-----------------------------------
+**MODEL ANSWERS**
+-----------------------------------
+
+**Concise Answer:**
+"I have 5.5 years of experience contributing to the design and implementation of CU-CP software at Mavenir. CU-CP hosts NGAP, XnAP, F1AP (CP), E1AP, and RRC. I have worked on both SA (NGAP to 5GC AMF) and NSA Option 3x (S1AP to EPC, X2AP to eNB master) deployments, focusing on RRC connection handling, UE context management, and inter-microservice signaling."
+
+**Detailed Answer:**
+"My work spans the full CU-CP stack. On the southbound side, F1AP toward DU carries UE-associated signaling like UE Context Setup, Modification, and Release, with RRC PDUs piggybacked in F1AP RRC Message Transfer. Northbound, NGAP toward AMF handles UE registration, PDU session establishment, paging, and handover. Eastbound, E1AP coordinates Bearer Context Setup/Modification with CU-UP, and XnAP handles inter-gNB handovers and dual connectivity coordination. For NSA, I worked on Option 3x where the secondary RAT node uses X2AP toward the master eNB and PDCP anchors at SN for split bearers."
+
+**Expert Answer:**
+Add specifics: TS 38.401 architecture, TS 38.473 F1AP, TS 38.463 E1AP, TS 38.413 NGAP, TS 38.423 XnAP, TS 38.331 RRC. Discuss how CU-CP is itself decomposed into microservices in your design (gNBMgr, UEConnMgr, IWF pods), the F1-C SCTP per DU per-CU, the multi-homing of SCTP for HA, and the ASN.1 PER unaligned encoding used across these interfaces.
+
+-----------------------------------
+**BAD ANSWERS**
+-----------------------------------
+
+**Weak Answer:** "CU-CP is the control plane part of gNB. I worked on protocols."
+
+**Why It Fails:** Generic, no depth, no interface names, no TS references, no ownership signal.
+
+**What Interviewer Thinks:** "Buzzword candidate. Probably copy-pasted from job description."
+
+-----------------------------------
+**DEEP DIVE**
+-----------------------------------
+- **Internal architecture**: CU-CP = RRC + PDCP-C + NGAP/F1AP/E1AP/XnAP terminations. Often decomposed into stateless front-end pods + stateful UE-context pods.
+- **Threading model**: Per-UE thread affinity, lock-free queues between protocol stacks, SCTP socket I/O thread separate from worker threads.
+- **Message flow**: NGAP InitialContextSetupRequest → F1AP UE Context Setup Request → DU response → E1AP Bearer Context Setup → RRC Reconfiguration → Reconfiguration Complete → NGAP InitialContextSetupResponse.
+- **State machine**: RRC_IDLE → RRC_CONNECTED → RRC_INACTIVE (Rel-15+).
+- **Memory handling**: UE context lifecycle tied to RRC connection; reference counting across pods.
+- **Failure cases**: SCTP association drop, AMF reset, DU disconnect, peer CU-UP crash.
+- **Race conditions**: Concurrent UE Context Release from AMF and DU.
+- **Performance bottlenecks**: ASN.1 encoding latency, SCTP socket contention, RRC reconfiguration storm during cell outage.
+- **HA considerations**: Stateful UE context vs stateless front-end split.
+- **Protocol compliance**: ASN.1 schema versioning per release.
+- **3GPP relevance**: Rel-15 (foundation), Rel-16 (IAB, NR-U, slicing enhancements), Rel-17 (RedCap, slice-based RRM, MBS).
+
+---
+
+## RESUME LINE 2
+
+-----------------------------------
+**RESUME LINE**
+-----------------------------------
+*"Specialized in 3GPP protocol development (NGAP, F1AP, E1AP, NR-RRC) with a focus on Rel-17 Network Slicing, High Availability (7:1 Cold Standby), and Active Load Balancing."*
+
+-----------------------------------
+**INTERVIEWER INTENT**
+-----------------------------------
+Verify protocol depth, slicing knowledge, and validate the unusual "7:1 Cold Standby" claim. Active Load Balancing is also a flag — they'll ask *what* is being load-balanced and *how*.
+
+-----------------------------------
+**CORE CONCEPTS**
+-----------------------------------
+NGAP procedures, F1AP procedures, E1AP procedures, NR-RRC messages and IEs, Rel-17 slicing (slice-based RRM, slice-based cell reselection, slice-aware admission control), HA models (1:1, N:1, N:M, Active-Active, Active-Standby, Cold vs Warm vs Hot Standby), checkpointing, load balancing strategies (round-robin, least-connections, consistent hashing, UE-anchor-based).
+
+-----------------------------------
+**EXPECTED QUESTIONS**
+-----------------------------------
+
+**Beginner:**
+- What's the difference between Cold, Warm, and Hot Standby?
+- What is S-NSSAI? Decompose it.
+- Name 5 NGAP procedures.
+
+**Intermediate:**
+- Why 7:1 and not 1:1? What was the design rationale?
+- In Cold Standby with no data replication, what happens to in-progress UE registrations during failover?
+- How does Active Load Balancing differ from Active-Standby HA?
+
+**Advanced:**
+- Walk me through F1AP UE Context Setup Request IEs.
+- In Rel-17 network slicing, how is slice-based RRM different from Rel-15 slicing?
+- Explain how SCTP multi-homing is used in your HA design.
+
+**Expert:**
+- In 7:1 Cold Standby, how do you guarantee no split-brain during a network partition between active and standby?
+- Describe how slice-based cell reselection (Rel-17) impacts RRC IDLE mode behavior and CU-CP paging logic.
+- How does your CU-CP handle simultaneous failure of two of the seven active microservices?
+
+-----------------------------------
+**FOLLOW-UP QUESTIONS**
+-----------------------------------
+- Why did your team choose Cold over Warm Standby? What's the cost difference?
+- How long does failover take in 7:1 Cold Standby? Measured in seconds?
+- During failover, all UEs anchored on the failed pod are dropped — what's the customer-visible KPI impact?
+- Who triggers the role reassignment — Kubernetes liveness, custom CIM, or external orchestrator?
+
+-----------------------------------
+**TRAP QUESTIONS**
+-----------------------------------
+- "Cold Standby means the standby pod isn't even running, right?" (Trap — in your case, MTCIL/CIM-driven, the standby is running but holds no state. Clarify your variant.)
+- "Network Slicing was introduced in Rel-17, correct?" (Wrong — slicing is foundational in Rel-15. Rel-17 added enhancements like slice-based RRM and slice-based cell reselection.)
+- "F1AP and E1AP use the same SCTP association?" (No — F1-C and E1 are distinct SCTP associations.)
+
+-----------------------------------
+**SCENARIO QUESTIONS**
+-----------------------------------
+- **Production**: After a CU-CP failover, 30% of UEs fail to re-register. What do you check?
+- **Debugging**: Standby pod takes role but SCTP toward AMF doesn't come up. Why?
+- **Scalability**: You have 7 active pods. Customer wants 14. Does your HA model scale linearly?
+- **Failure recovery**: Active pod crashes mid-handover. UE context is on active pod. What happens?
+- **Kubernetes**: How do you ensure the standby pod isn't scheduled on the same node as any active pod?
+- **Protocol**: After failover, AMF still has UE context with old AMF-UE-NGAP-ID. How does new active reconcile?
+
+-----------------------------------
+**MODEL ANSWERS**
+-----------------------------------
+
+**Concise Answer:**
+"We implemented 7:1 Cold Standby where seven active CU-CP microservice instances share one standby. No state replication, so on failure, UEs on the failed pod are released via SCTP reset and AMF-side UE Context Release; the standby takes over the role (IP, SCTP endpoints) within a few seconds. Active Load Balancing distributes new UEs across the seven actives using a hash on UE identity at the front-end IWF pods."
+
+**Detailed Answer:**
+"The design trades off recovery completeness for cost — Hot Standby with checkpointing would require N+N pods and per-UE state sync, doubling memory and adding latency. 7:1 Cold Standby gives ~87% capacity utilization with one redundant pod. On failure, CIM (Configuration & Inventory Manager) detects via heartbeat loss, MTCIL triggers role reassignment, the standby binds the failed pod's virtual IP, re-establishes SCTP associations toward AMF/DU/CU-UP, and existing UEs are released cleanly using NGAP UE Context Release Request with cause 'failure in radio interface procedure.' New UEs register via the standby normally. Load balancing across the seven actives is done at the IWF NG-pod using S-TMSI / RAN-UE-NGAP-ID hashing to ensure UE affinity."
+
+**Expert Answer:**
+Add: split-brain prevention via fencing (the failing pod's network is cut before standby takes role), SCTP INIT collision handling, AMF Reset procedure interaction (NGAP Reset), why we don't use NGAP Partial Reset in this scenario, and the implication on N2 notifications during the window.
+
+-----------------------------------
+**BAD ANSWERS**
+-----------------------------------
+
+**Weak Answer:** "We had 7 active pods and 1 standby. If one fails, standby takes over."
+
+**Why It Fails:** No mention of *how* takeover happens, no SCTP detail, no UE handling, no failure detection mechanism, no split-brain discussion.
+
+**What Interviewer Thinks:** "He worked on a feature but doesn't understand the system."
+
+-----------------------------------
+**DEEP DIVE**
+-----------------------------------
+- **HA models comparison**: Hot (sub-second, full state sync, expensive), Warm (state sync but standby not serving, seconds), Cold (no state, tens of seconds, cheapest).
+- **Split-brain prevention**: STONITH-style fencing, lease-based leadership (etcd/ZooKeeper), or central arbiter (CIM).
+- **SCTP nuances**: SCTP INIT with same source IP/port from new pod requires either ABORT of stale association or wait for AMF heartbeat timeout.
+- **3GPP angle**: NGAP Reset (TS 38.413 §9.2.6) — full or partial reset to clear stale UE associations on AMF side.
+
+---
+
+## RESUME LINE 3
+
+-----------------------------------
+**RESUME LINE**
+-----------------------------------
+*"Deeply experienced in developing high-performance C++ within cloud-native (K8s/Docker) environments, transitioning features from initial 3GPP specifications to stabilized field deployment."*
+
+-----------------------------------
+**INTERVIEWER INTENT**
+-----------------------------------
+Test C++ depth (modern C++, concurrency, memory), K8s operational knowledge, and end-to-end feature delivery lifecycle.
+
+-----------------------------------
+**CORE CONCEPTS**
+-----------------------------------
+C++11/14/17/20 features, RAII, move semantics, smart pointers, lock-free programming, perf optimization, K8s primitives (Deployment, StatefulSet, DaemonSet, Service, ConfigMap, Secret, PV/PVC), Helm charts, telecom workload nuances (SCTP, real-time, stateful), 3GPP TS reading → CR → low-level design → coding → unit test → integration → system test → field.
+
+-----------------------------------
+**EXPECTED QUESTIONS**
+-----------------------------------
+
+**Beginner:**
+- Difference between unique_ptr, shared_ptr, weak_ptr.
+- What is a Pod, Deployment, StatefulSet?
+- What's RAII?
+
+**Intermediate:**
+- When would you NOT use shared_ptr in a telecom hot path?
+- How do you handle SCTP in a Kubernetes pod (it's not standard Service-supported)?
+- How do you debug a memory leak in a long-running CU-CP pod?
+
+**Advanced:**
+- Show me a lock-free SPSC queue implementation in C++.
+- How do you achieve zero-copy ASN.1 decoding?
+- Explain the memory model of std::atomic and when to use memory_order_relaxed vs acquire/release.
+
+**Expert:**
+- In a 64-core machine running CU-CP, how do you pin threads, isolate NUMA, and avoid false sharing?
+- How would you implement a custom allocator for per-UE context to reduce malloc contention?
+- Compare epoll vs io_uring for SCTP socket handling in CU-CP.
+
+-----------------------------------
+**FOLLOW-UP QUESTIONS**
+-----------------------------------
+- Give me one C++ pitfall you hit in production and how you fixed it.
+- Show me your Dockerfile pattern for a CU-CP image. How do you handle SCTP kernel module?
+- How does your CU-CP Helm chart handle rolling upgrades without dropping UEs?
+
+-----------------------------------
+**TRAP QUESTIONS**
+-----------------------------------
+- "shared_ptr is thread-safe, right?" (Control block ref count yes, the pointee no.)
+- "std::vector is always faster than std::list?" (Usually yes, but cache locality nuances exist.)
+- "Kubernetes Service load-balances SCTP traffic?" (Not by default — SCTP support is gated and IPVS may be needed.)
+
+-----------------------------------
+**SCENARIO QUESTIONS**
+-----------------------------------
+- **Production**: CU-CP pod RSS grows 100MB/hour. Walk through your investigation.
+- **Debugging**: Pod gets OOMKilled every 18 hours. cgroup limit is 8Gi. What do you do?
+- **Scalability**: CPU profiling shows 40% time in ASN.1 PER encoding. How do you optimize?
+- **Failure recovery**: Pod crashed with SIGSEGV, no core dump generated. Why? How to fix?
+- **Kubernetes**: Helm upgrade caused a CrashLoopBackOff. Rollback fails. What's your runbook?
+- **Protocol**: After kernel upgrade, SCTP heartbeats are missing in pcap from pod. What's wrong?
+
+-----------------------------------
+**MODEL ANSWERS**
+-----------------------------------
+
+**Detailed Answer:**
+"For high-performance C++ in CU-CP, I rely on: (1) move semantics and emplace_back to avoid copies on UE context creation, (2) unique_ptr for owning UE state with explicit ownership transfer, (3) lock-free SPSC ring buffers between SCTP I/O thread and worker threads, (4) per-thread allocators for ASN.1 decoder scratch memory to avoid malloc contention. For Kubernetes, SCTP requires enabling the SCTP kernel module on nodes, and we use headless services with explicit Endpoints since kube-proxy SCTP NAT support is limited. Rolling upgrades use a custom controller that drains UEs (RRC Release with redirect) before terminating the old pod."
+
+-----------------------------------
+**BAD ANSWERS**
+-----------------------------------
+**Weak Answer:** "I use shared_ptr everywhere and Kubernetes Deployments."
+
+**Why It Fails:** No nuance, no telecom-specific concerns. shared_ptr atomic ref count is a hot-path killer.
+
+---
+
+## RESUME LINE 4 — SKILLS BLOCK
+
+-----------------------------------
+**RESUME LINE**
+-----------------------------------
+*"C, C++, Python (Scripting), Shell Scripting | 5G NR, 3GPP Rel 15/16/17, CU-CP Architecture, SA/NSA | NGAP, F1AP, E1AP, NR-RRC, XnAP, TCP/IP, UDP | Docker, Kubernetes, Helm, GIT, Wireshark, GDB, Valgrind | Prisma UE Simulator, E2E Call Flow Validation, Log Analysis"*
+
+-----------------------------------
+**INTERVIEWER INTENT**
+-----------------------------------
+Every keyword here is a potential 15-minute drilldown. Skills sections invite "Rate yourself 1-10 on X" questions.
+
+-----------------------------------
+**EXPECTED QUESTIONS (per keyword)**
+-----------------------------------
+
+**C/C++:**
+- Why do telecom stacks still use C? Where in your codebase is C used vs C++?
+- Show me how you'd implement an ASN.1 PER decoder primitive in C.
+
+**Python:**
+- What automation did you build? Pytest? Robot Framework?
+- How do you simulate concurrent UE attaches in Python?
+
+**3GPP Rel 15/16/17 (DANGER ZONE):**
+- Name three Rel-16 features you implemented or touched.
+- What did Rel-17 add to F1AP that wasn't in Rel-16?
+- What's the difference between Rel-15 slicing and Rel-17 slicing?
+
+**NGAP:**
+- List all NGAP elementary procedures you've worked on.
+- Decode this NGAP message hex dump on the whiteboard.
+- What's the difference between AMF-UE-NGAP-ID and RAN-UE-NGAP-ID? Who allocates each?
+
+**F1AP:**
+- Walk through F1 Setup procedure.
+- What's gNB-CU UE F1AP ID vs gNB-DU UE F1AP ID?
+- What happens to F1AP when DU loses cell?
+
+**E1AP:**
+- Walk through Bearer Context Setup procedure.
+- What's in Bearer Context Modification Required (DU→CU-UP triggered)?
+- How does E1AP handle multiple PDU sessions for one UE?
+
+**NR-RRC:**
+- Name 10 NR-RRC messages.
+- What's RRC Reestablishment vs Reconfiguration with Sync?
+- What triggers RRCInactive→RRCConnected via RAN Paging?
+- ASN.1 — what's PER unaligned and why does 3GPP use it?
+
+**XnAP:**
+- Walk through Xn handover procedure (preparation, execution, completion).
+- What's the difference between Xn handover and N2 handover? When is each used?
+- Xn Setup procedure — what's exchanged?
+
+**TCP/IP, UDP:**
+- Why does 3GPP mandate SCTP, not TCP, for control plane?
+- What's SCTP multi-streaming and how does NGAP use it?
+
+**Docker/K8s/Helm:**
+- How do you handle persistent UE state across pod restart?
+- Helm chart for a stateful CU-CP — describe its structure.
+- Liveness vs Readiness probes for CU-CP.
+
+**Wireshark:**
+- How do you decode NGAP in Wireshark? What about encrypted NAS?
+- Show me how to filter for one specific UE across F1AP and NGAP.
+
+**GDB/Valgrind:**
+- gdb on a stripped binary in production — your approach?
+- Valgrind makes CU-CP 30x slower; how do you find race conditions instead?
+
+**Prisma UE Simulator:**
+- What scenarios does Prisma support? How do you script handovers?
+- Compare with Spirent Landslide, Polaris, Amari Callbox.
+
+---
+
+## RESUME LINE 5 — MAVENIR EXPERIENCE HEADER
+
+-----------------------------------
+**RESUME LINE**
+-----------------------------------
+*"Member of Technical Staff - III, Mavenir Systems Pvt. Ltd., July 2020 — Present"*
+
+-----------------------------------
+**INTERVIEWER INTENT**
+-----------------------------------
+Validate ownership at MTS-III, scope of responsibility, and whether you led modules or just contributed.
+
+-----------------------------------
+**EXPECTED QUESTIONS**
+-----------------------------------
+- What's the team size? How many engineers on CU-CP?
+- What modules do you OWN end-to-end?
+- Who reviews your designs? Who reviews your code?
+- Have you mentored juniors?
+- Largest production bug you owned end-to-end — describe it.
+
+-----------------------------------
+**TRAP QUESTIONS**
+-----------------------------------
+- "You said 'leading the development' — how many people report to you?" (If zero, don't say "leading.")
+
+---
+
+## RESUME LINE 6 — LEADING DEVELOPMENT
+
+-----------------------------------
+**RESUME LINE**
+-----------------------------------
+*"Leading the development of 3GPP-compliant Layer-3 (CU-CP) software for 5G SA infrastructure, utilizing C++ and cloud-native virtualization to deliver carrier-grade RAN solutions."*
+
+-----------------------------------
+**INTERVIEWER INTENT**
+-----------------------------------
+Verify "leading" — feature leadership vs people leadership. Verify "carrier-grade" — five-9s, KPIs, etc.
+
+-----------------------------------
+**EXPECTED QUESTIONS**
+-----------------------------------
+- Define "carrier-grade." What's the availability target?
+- How is your CU-CP "3GPP-compliant"? Who certifies?
+- What conformance test suites do you run? (TTCN, 3GPP TS 38.523?)
+- Did you participate in PlugFest / interop tests?
+
+**Trap:** "Carrier-grade means 99.999% — what's your measured availability?" If you can't answer with a number, you're cooked.
+
+---
+
+## RESUME LINE 7 — ARCHITECTING PROTOCOLS
+
+-----------------------------------
+**RESUME LINE**
+-----------------------------------
+*"Architecting and stabilizing control-plane protocols (NGAP, F1AP, E1AP, NR-RRC, XnAP) on the 3GPP stack, ensuring seamless end-to-end 5G NR call flows."*
+
+-----------------------------------
+**INTERVIEWER INTENT**
+-----------------------------------
+The interviewer will pick ONE protocol and drill until you break.
+
+-----------------------------------
+**EXPECTED QUESTIONS (will dive into one protocol)**
+-----------------------------------
+
+**NGAP Deep Dive:**
+- List all classes of NGAP procedures (Class 1, Class 2).
+- What's a UE-associated vs Non-UE-associated NGAP signaling?
+- Explain NGAP Initial Context Setup — full IE breakdown.
+- Explain Path Switch Request (used when?).
+- AMF Configuration Update vs RAN Configuration Update.
+- How does NGAP carry NAS PDUs? Container? Transparent?
+- What's Overload Start / Overload Stop?
+- NGAP Reset — full vs partial. When and why?
+
+**F1AP Deep Dive:**
+- F1 Setup, gNB-CU/DU Configuration Update, Reset.
+- UE Context Setup/Modification/Release.
+- DL/UL RRC Message Transfer.
+- F1 Removal procedure.
+- gNB-DU Status Indication.
+- Notify procedure for DRB issues.
+- How does F1AP handle SRB0, SRB1, SRB2, SRB3?
+
+**E1AP Deep Dive:**
+- E1 Setup, gNB-CU-CP/UP Configuration Update.
+- Bearer Context Setup/Modification/Release.
+- Modification Required vs Modification Request (direction matters!).
+- DL Data Notification.
+- How is QoS Flow mapped to DRB at CU-UP, signaled via E1AP?
+
+**NR-RRC Deep Dive:**
+- All RRC messages on SRB0 (RRCSetupRequest, RRCSetup, RRCReject, RRCResume*, RRCReestablishment*).
+- RRCSetupComplete carries what?
+- Capability enquiry/info.
+- RRCReconfiguration — what's in radioBearerConfig, cellGroupConfig, measConfig, NAS dedicated info?
+- RRCReestablishment cause codes.
+- SDT (Small Data Transmission) in Rel-17.
+
+**XnAP Deep Dive:**
+- Handover Preparation, Request Ack, SN Status Transfer, UE Context Release.
+- Xn-U tunnel setup.
+- Cell Activation, Resource Status Reporting (for ANR/SON).
+
+-----------------------------------
+**MODEL EXPECTATION**
+-----------------------------------
+You should be able to draw on whiteboard the full SA UE attach flow with 30+ messages from RACH → RRCSetup → RegistrationRequest → AuthenticationRequest → ... → PDU Session Establishment → RRCReconfiguration → end of attach, naming every NGAP/F1AP/E1AP/RRC message.
+
+---
+
+## RESUME LINE 8 — HA COLD STANDBY DETAILED BULLETS
+
+-----------------------------------
+**RESUME LINE**
+-----------------------------------
+*"Implemented Cold Standby HA (7:1 Active–Standby, no data replication) for CU-CP microservices, covering gNBMgr (Node Entity), UEConnMgr (UE Entity), and IWF pods (NG, F1, E1 and Xn), enabling pod-level failover via CIM/MTCIL-driven role reassignment."*
+
+-----------------------------------
+**INTERVIEWER INTENT**
+-----------------------------------
+This is your strongest claim. They WILL drill the hardest here. Be ready.
+
+-----------------------------------
+**CORE CONCEPTS**
+-----------------------------------
+Microservice decomposition: gNBMgr (per-gNB state, cell config, NGAP non-UE-associated, F1/Xn setup), UEConnMgr (per-UE context, RRC, UE-associated signaling), IWF (InterWorking Function, terminates SCTP and routes messages). Role reassignment via external orchestrator (CIM = Configuration & Inventory Mgmt, MTCIL = likely Mavenir's internal control layer). Failure detection (heartbeat, liveness, K8s probes).
+
+-----------------------------------
+**EXPECTED QUESTIONS**
+-----------------------------------
+
+**Beginner:**
+- What's a microservice in CU-CP context?
+- Why split into gNBMgr, UEConnMgr, IWF?
+
+**Intermediate:**
+- How does an NGAP message arriving on IWF-NG get routed to the right UEConnMgr pod?
+- When IWF-F1 pod fails, what happens to all its SCTP associations with DUs?
+- How does the standby pod take over the failed pod's IP?
+
+**Advanced:**
+- In Cold Standby with no data replication, how do you handle the UE that was mid-Reconfiguration?
+- What's the failover RTO (Recovery Time Objective)? RPO (Recovery Point Objective)?
+- During failover, AMF still thinks UE is active. How do you reconcile?
+
+**Expert:**
+- How do you handle SCTP INIT collision when the new pod takes the failed pod's IP and AMF still has association?
+- If CIM/MTCIL itself fails, what's the fallback?
+- How do you prevent two pods from believing they're both active (split-brain)?
+- During role reassignment, what's the order of operations? IP first? SCTP first? Application state first?
+
+-----------------------------------
+**BRUTAL FOLLOW-UPS**
+-----------------------------------
+- "How long does failover take? Seconds? Give me a number."
+- "What's the impact on KPIs during failover — drop call rate?"
+- "Why didn't you do Warm Standby? Cost? Complexity?"
+- "If a UEConnMgr pod fails with 1000 UEs, all 1000 are dropped — isn't that worse than 1:1 HA?"
+- "Did you measure the AMF-side impact? AMF logs flooded with UE Context Release Request?"
+
+-----------------------------------
+**SCENARIO QUESTIONS**
+-----------------------------------
+- **Production**: Standby is supposed to take over in 5s but takes 45s. What slowed it down?
+- **Debugging**: After failover, new active pod can't bind to virtual IP — "address already in use." Diagnose.
+- **Failure**: Two UEConnMgr pods fail simultaneously. Only one standby. What happens?
+- **Network**: Network partition — standby thinks active is dead, active is healthy. Both try to serve. How do you prevent?
+- **K8s**: K8s scheduler places standby on same node as one active. Node fails. Both gone. How to prevent (anti-affinity)?
+
+-----------------------------------
+**MODEL ANSWERS**
+-----------------------------------
+
+**Detailed Answer:**
+"Our CU-CP is decomposed into three microservice types: gNBMgr maintains per-gNB state and handles non-UE-associated procedures; UEConnMgr is sharded by UE and holds RRC + per-UE NGAP/F1AP/E1AP/XnAP context; IWF pods (one per interface — NG, F1, E1, Xn) terminate SCTP associations and route messages. The 7:1 model means seven actives plus one standby per microservice tier. Failure detection is via CIM heartbeats with a 2-second interval and 3-miss threshold, giving ~6-8 second detection. On failure, MTCIL orchestrates: (1) fence the failed pod via network policy update, (2) instruct standby to claim virtual IP, (3) standby brings up SCTP endpoints, (4) standby sends NGAP Reset to AMF for the affected RAN-UE-NGAP-ID range, prompting AMF to release UE contexts, (5) UEs reattach. Split-brain is prevented because CIM is the single source of truth for role assignment, and the failed pod's network egress is cut before standby activates."
+
+-----------------------------------
+**RED FLAGS INTERVIEWER LOOKS FOR**
+-----------------------------------
+- Candidate doesn't know what NGAP Reset does
+- Candidate doesn't mention split-brain
+- Candidate doesn't mention K8s anti-affinity / pod topology spread
+- Candidate can't quantify RTO
+- Candidate doesn't explain how AMF reconciles stale UE context
+
+---
+
+## RESUME LINE 9 — END-TO-END HA DELIVERY
+
+-----------------------------------
+**RESUME LINE**
+-----------------------------------
+*"Delivered end-to-end HA functionality through core code changes and E2E validation, implementing failure detection, switchover logic, UE release behaviour, and SCTP reset/recovery workflows."*
+
+-----------------------------------
+**EXPECTED QUESTIONS**
+-----------------------------------
+- How is failure detected? K8s liveness, custom heartbeat, or both?
+- Why both might be needed (liveness misses application-level deadlocks).
+- Walk through SCTP RESET procedure (SCTP-level, not NGAP Reset).
+- What's the difference between SCTP ABORT, SHUTDOWN, RESET (RFC 6525 - reconfig)?
+- During switchover, do you send NGAP UE Context Release or NGAP Reset?
+- For F1AP, after failover, do DUs need to redo F1 Setup?
+
+**Trap:** "SCTP Reset and NGAP Reset are the same?" (No — SCTP RESET is transport-layer stream reset; NGAP Reset is application-layer procedure.)
+
+---
+
+## RESUME LINE 10 — AVAILABILITY OPTIMIZATION
+
+-----------------------------------
+**RESUME LINE**
+-----------------------------------
+*"Optimized system availability by eliminating full NF restarts during individual microservice crashes, reducing service recovery time and managing stateful UE release signalling during transitions."*
+
+-----------------------------------
+**EXPECTED QUESTIONS**
+-----------------------------------
+- Before your work: full NF restart took how long? After: how long? **Give numbers.**
+- What's a "stateful UE release"? Why is it special?
+- During microservice crash, who sends UE Context Release to AMF — the crashed pod or the standby?
+- Why was full NF restart happening before? What dependency caused it?
+
+**Bluff Risk:** Without numbers, "optimized" sounds hollow. Suggest reframing: "Reduced microservice recovery time from ~120s full-NF restart to ~10s pod-level failover."
+
+---
+
+## RESUME LINE 11 — NETWORK SLICING DESIGN
+
+-----------------------------------
+**RESUME LINE**
+-----------------------------------
+*"Designed and delivered 5G RAN network slicing for CU-CP, implementing S-NSSAI-aware admission control and RRM policy enforcement to support diverse SLA requirements."*
+
+-----------------------------------
+**CORE CONCEPTS**
+-----------------------------------
+S-NSSAI = SST + SD (1 byte + 3 bytes). Standardized SSTs (eMBB=1, URLLC=2, MIoT=3, V2X=4, HMTC=5, HDLLC=6). NSSAI vs Allowed NSSAI vs Configured NSSAI vs Requested NSSAI vs Subscribed NSSAI vs Rejected NSSAI. Slice admission at RAN: TS 38.300 §16.4, TS 38.331 RRC, TS 38.413 NGAP.
+
+-----------------------------------
+**EXPECTED QUESTIONS**
+-----------------------------------
+
+**Beginner:**
+- What's S-NSSAI? SST? SD?
+- What's the difference between Allowed and Requested NSSAI?
+
+**Intermediate:**
+- Where in the NGAP Initial Context Setup is S-NSSAI carried?
+- How does CU-CP know which slices a cell supports?
+- What's slice-aware admission control?
+
+**Advanced:**
+- A UE requests S-NSSAI {SST=1,SD=000001} but cell supports {SST=1,SD=000002}. What happens?
+- AMF sends Allowed NSSAI with 3 slices but only 2 are supported by gNB. How does CU-CP handle?
+- How is slice info conveyed in RRC to UE? (Hint: it's not directly; via NAS.)
+
+**Expert:**
+- In Rel-17, slice-based cell reselection — explain priority handling.
+- How does CU-CP enforce per-slice PRB quota toward DU via F1AP?
+- How does slice info propagate to CU-UP via E1AP for QoS enforcement?
+- Slice congestion control — what's the standard mechanism?
+
+-----------------------------------
+**TRAP QUESTIONS**
+-----------------------------------
+- "S-NSSAI is sent in RRC, right?" (No, it's not in RRC directly — RAN gets it via NGAP; UE has it via NAS configuration.)
+- "Default slice? Is it always SST=1?" (SST=1 is eMBB but operator defines default in subscription.)
+
+-----------------------------------
+**WHITEBOARD**
+-----------------------------------
+Draw: UE → AMF (Registration with Requested NSSAI) → AMF returns Allowed NSSAI → PDU Session Establishment per S-NSSAI → NGAP PDU Session Resource Setup with S-NSSAI → CU-CP admission decision → F1AP UE Context Modification with slice info → E1AP Bearer Context with slice info → CU-UP QoS mapping.
+
+---
+
+## RESUME LINE 12 — RRM RESOURCE MODELS
+
+-----------------------------------
+**RESUME LINE**
+-----------------------------------
+*"Engineered resource management models (Dedicated, Prioritized, and Shared) for RRC and DRB allocation, utilizing dynamic PRB-quota signalling to mitigate inter-slice interference and optimize throughput."*
+
+-----------------------------------
+**EXPECTED QUESTIONS**
+-----------------------------------
+- Define Dedicated, Prioritized, Shared in slice context. (3GPP TS 28.541 / TR 28.801 references.)
+- How does CU-CP signal PRB quota to DU? (F1AP — but which IE specifically? TS 38.473.)
+- PRB allocation is a DU/MAC scheduler function — what's CU-CP's role really?
+- "Mitigate inter-slice interference" — interference is a PHY concept; slicing is logical. Clarify what you mean.
+
+**Bluff Risk:** PRB allocation happens at MAC scheduler in DU. CU-CP only signals *policy*. Be careful not to overclaim scheduler-level work.
+
+**Drill-down trap:** "Show me the F1AP IE you used to signal PRB quota." (TS 38.473 — RRM Policy Ratio Group, NR Cell Resource Configuration.)
+
+---
+
+## RESUME LINE 13 — SLICE-AWARE AMF SELECTION & MOBILITY
+
+-----------------------------------
+**RESUME LINE**
+-----------------------------------
+*"Developed slice-aware AMF Selection and mobility handling logic, ensuring seamless session continuity and QoS-isolated operations in complex multi-slice 5G SA deployments."*
+
+-----------------------------------
+**EXPECTED QUESTIONS**
+-----------------------------------
+- AMF Selection algorithm — at RAN side, how do you pick AMF when multiple are available?
+- TS 23.501 — AMF Set, AMF Region, GUAMI. Explain.
+- When UE sends RRCSetupComplete with 5G-S-TMSI, how does CU-CP map to AMF?
+- For initial registration without 5G-S-TMSI, how does CU-CP pick AMF? (NSSAI-based selection.)
+- Slice-aware handover — if target gNB doesn't support source slice, what happens?
+- N2 handover vs Xn handover when slices differ.
+
+**Trap:** "AMF Selection is a SMF function." (No — RAN does AMF selection at initial NAS; AMF does SMF selection.)
+
+---
+
+## RESUME LINE 14 — DEBUGGING & RCA
+
+-----------------------------------
+**RESUME LINE**
+-----------------------------------
+*"Field-Critical Root Cause Analysis: Orchestrated the debugging and resolution of complex race conditions, memory leaks, and segmentation faults in POD setups using GDB, Valgrind, and Klockwork."*
+
+-----------------------------------
+**EXPECTED QUESTIONS**
+-----------------------------------
+
+**GDB:**
+- How do you debug a stripped release binary?
+- Conditional breakpoints, watchpoints, reverse debugging?
+- gdb on a core dump from a different machine — symbol path setup.
+- TUI mode? pretty printers for STL?
+
+**Valgrind:**
+- Memcheck, Helgrind, DRD, Callgrind, Massif — when to use each?
+- Why is Valgrind impractical in production? (10-50x slowdown.)
+- Alternatives: AddressSanitizer, ThreadSanitizer, LeakSanitizer.
+
+**Klocwork:**
+- What classes of issues does it catch?
+- False positive rate — how do you triage?
+
+**Race conditions:**
+- Give me ONE race condition you debugged. Walk through.
+- How do you reproduce a race that happens 1 in 10000 calls?
+
+**Memory leaks:**
+- Long-running pod leaks 10MB/day. How do you find it without restart?
+- jemalloc/tcmalloc stats, /proc/PID/smaps, heaptrack.
+
+**Segfault:**
+- gdb on core — first 5 commands you run? (bt, info threads, frame, info locals, list)
+- What if core is truncated due to cgroup limit?
+
+-----------------------------------
+**EXPECTED ONE WAR STORY**
+-----------------------------------
+"Tell me about the hardest bug you ever fixed." This is guaranteed to be asked. Prepare ONE story with: symptom, hypothesis, investigation steps, dead ends, breakthrough, fix, prevention measure added.
+
+---
+
+## RESUME LINE 15 — E2E VALIDATION LEADERSHIP
+
+-----------------------------------
+**RESUME LINE**
+-----------------------------------
+*"E2E Validation Leadership: Managed end-to-end RAN validation workflows using Prisma UE Simulators, coordinating across cross-functional teams to resolve intricate integration issues."*
+
+-----------------------------------
+**EXPECTED QUESTIONS**
+-----------------------------------
+- Prisma UE Simulator — what does it simulate? gNB? UE? Multi-UE?
+- How do you script a 1000-UE attach burst in Prisma?
+- Compare Prisma with Spirent Landslide and Keysight.
+- "Managed" — how many engineers? What was your decision authority?
+- What test cases did you author? 3GPP TS 38.523-based?
+- Cross-functional means whom? DU team? Core team? CU-UP team? Customer?
+
+---
+
+## RESUME LINE 16 — TEST AUTOMATION
+
+-----------------------------------
+**RESUME LINE**
+-----------------------------------
+*"Enhanced Python-based automated test suites to simulate high-load traffic scenarios, ensuring system stability and Rel-17 feature compliance before deployment."*
+
+-----------------------------------
+**EXPECTED QUESTIONS**
+-----------------------------------
+- Pytest, Robot Framework, custom?
+- How do you generate "high load"? UE count? CPS?
+- KPIs measured: attach success rate, latency p50/p95/p99, throughput.
+- Integration with CI/CD? Jenkins pipeline?
+- How long does a full regression take?
+
+---
+
+## RESUME LINE 17 — ACHIEVEMENTS
+
+-----------------------------------
+**RESUME LINE**
+-----------------------------------
+*"Received Excellence Award at Mavenir for outstanding contribution and teamwork in delivering the Network Slicing feature as per project timelines."*
+
+-----------------------------------
+**EXPECTED QUESTIONS**
+-----------------------------------
+- What specifically did you deliver to earn this?
+- Team size? Your scope vs others?
+- Customer who deployed this feature?
+
+-----------------------------------
+**RESUME LINE**
+-----------------------------------
+*"Ranked in Top 0.5% (amongst 125,000 candidates) at All India Level in GATE ECE in 2018."*
+
+Good signal — academic rigor proxy. Likely won't be drilled.
+
+---
+
+# 📚 CONSOLIDATED PREPARATION SECTION
+
+## 1. TOP 50 MOST PROBABLE INTERVIEW QUESTIONS
+
+1. Walk me through the full SA UE Initial Registration call flow.
+2. Walk me through PDU Session Establishment.
+3. Walk me through Xn Handover (preparation, execution, completion).
+4. Walk me through N2 (NGAP) Handover. When chosen over Xn?
+5. Differentiate F1AP UE Context Setup vs Modification vs Release.
+6. Explain E1AP Bearer Context Setup procedure end-to-end.
+7. RRC state machine — IDLE, INACTIVE, CONNECTED. Transitions.
+8. RRC Reestablishment — triggers, cause codes, success/failure flow.
+9. What's in RRCReconfiguration message? Major IEs.
+10. How is NAS PDU carried over NGAP and RRC?
+11. NGAP Initial Context Setup — full IE walkthrough.
+12. Explain S-NSSAI and slice selection flow.
+13. How does CU-CP select AMF? AMF set, GUAMI, weight factor.
+14. SCTP — why used in 3GPP? Multi-streaming, multi-homing, heartbeats.
+15. Difference between SCTP RESET, ABORT, SHUTDOWN.
+16. NGAP Reset — full vs partial. When used.
+17. How does CU-CP handle AMF restart?
+18. How does CU-CP handle DU restart?
+19. How does CU-CP handle CU-UP failure?
+20. Cold vs Warm vs Hot Standby — tradeoffs.
+21. Your 7:1 Cold Standby design — full walkthrough.
+22. Split-brain prevention in HA.
+23. How is UE state recovered after failover?
+24. Rolling upgrade of CU-CP pods without dropping UEs.
+25. K8s anti-affinity for CU-CP HA — how configured.
+26. SCTP in Kubernetes — kernel module, Service support.
+27. Helm chart structure for CU-CP.
+28. Liveness vs Readiness probe for stateful CU-CP.
+29. Memory leak investigation in long-running pod.
+30. Race condition you fixed — describe.
+31. gdb on production core — 10 commands you'd run.
+32. ASN.1 PER unaligned vs aligned — why 3GPP picks unaligned.
+33. How does ASN.1 ensure forward/backward compatibility?
+34. C++: shared_ptr in hot path — performance impact.
+35. C++: lock-free queue between SCTP thread and worker.
+36. C++: move semantics for UE context.
+37. Modern C++ features you've used in CU-CP.
+38. Threading model of your CU-CP.
+39. How is per-UE work parallelized?
+40. Wireshark filter for one UE across F1AP+NGAP+E1AP.
+41. NSA Option 3x — bearer split, control plane flow.
+42. Rel-15 vs Rel-16 vs Rel-17 — three concrete differences each.
+43. Rel-17 slice-based RRM — what's new.
+44. RedCap UE — RRC differences.
+45. SDT (Small Data Transmission) — RRC Inactive feature.
+46. Paging — CN paging vs RAN paging.
+47. How does CU-CP handle paging?
+48. Conformance testing — TS 38.523 suites.
+49. Hardest bug in your career.
+50. Why Mavenir → why Nokia/Samsung/Ericsson (per company).
+
+## 2. TOP 20 HARDEST TELECOM QUESTIONS
+
+1. In MR-DC, where does PDCP anchor and what does CU-CP coordinate via X2AP/XnAP?
+2. Explain the inter-system handover from 5G to 4G in detail.
+3. Slice isolation at RAN — physical PRB partitioning vs logical?
+4. How does CU-CP handle UE context for an RRC Inactive UE that moves to new gNB?
+5. RNA (RAN Notification Area) update procedure.
+6. Conditional Handover (CHO) — Rel-16 feature, CU-CP role.
+7. DAPS (Dual Active Protocol Stack) handover — Rel-16.
+8. UE capability transfer — when, how, caching.
+9. Security key handling on handover — KgNB derivation.
+10. NGAP Path Switch Request — when sent, why exists.
+11. E1AP DL Data Notification — what triggers it.
+12. F1AP Notify procedure — purpose.
+13. gNB-CU Configuration Update vs gNB-DU Configuration Update.
+14. RACH-less handover and CU-CP signaling.
+15. CSI / SRS configuration — how CU-CP signals via RRCReconfiguration.
+16. MBS (Multicast/Broadcast Service) in Rel-17 — CU-CP impact.
+17. Positioning (NRPPa) — CU-CP termination.
+18. IAB (Integrated Access Backhaul) — Rel-16, F1 over wireless.
+19. NR-U (Unlicensed) — LBT impact on CU-CP signaling.
+20. PNI-NPN / SNPN — Public Network Integrated Non-Public Networks.
+
+## 3. TOP 20 DEBUGGING QUESTIONS
+
+1. Pod OOMKilled every 18 hours — investigation steps.
+2. Memory leak: 10 MB/hour — find without restart.
+3. Random segfault — reproduce in lab.
+4. Race between two threads on UE context — debug.
+5. Deadlock — gdb commands to identify.
+6. SCTP association keeps flapping — root cause path.
+7. AMF stops sending DL NGAP messages — debug.
+8. DU disconnects from CU repeatedly — debug.
+9. UE attach fails at RRCReconfiguration step — debug.
+10. RRC Reestablishment rate spikes — debug.
+11. Handover failure rate increased after release — debug.
+12. CPU pegged at 100% on one core — debug.
+13. Logs missing during crash — why and fix.
+14. Core dump truncated — fix.
+15. Wireshark shows duplicate SCTP INITs — cause.
+16. ASAN reports use-after-free — workflow.
+17. TSAN reports data race — workflow.
+18. Perf top shows malloc on hot path — fix.
+19. Latency p99 spike correlated with GC-like pattern in C++ pod — cause.
+20. Pod stuck in CrashLoopBackOff — diagnose.
+
+## 4. TOP 20 PROTOCOL QUESTIONS
+
+1. Decode this NGAP hex on whiteboard.
+2. Full NGAP Initial Context Setup IE list.
+3. F1AP UE Context Setup Request IE list.
+4. E1AP Bearer Context Setup Request IE list.
+5. RRCSetup message IEs.
+6. RRCReconfiguration IEs.
+7. ASN.1 — define a CHOICE, SEQUENCE, OPTIONAL.
+8. PER encoding of an OPTIONAL field — bit pattern.
+9. NGAP procedure codes — list 10.
+10. SCTP chunk types.
+11. NGAP carrying NAS PDU — IE name.
+12. RRC carrying NAS PDU — IE name.
+13. Difference between RRCRelease with redirect, with suspendConfig.
+14. UE Context Release sequence: AMF→CU-CP→CU-UP→DU→UE.
+15. F1AP UE F1AP ID allocation — who allocates, scope.
+16. NGAP UE NGAP ID allocation — who, scope, when reused.
+17. Xn Handover Request vs N2 Handover Required.
+18. Path Switch Request — purpose.
+19. NGAP Overload — Start/Stop, AMF→RAN signaling.
+20. RRC measurement reporting — events A1-A6, B1-B2.
+
+## 5. TOP 20 C++ CONCURRENCY QUESTIONS
+
+1. std::atomic memory orderings explained.
+2. Implement SPSC lock-free queue.
+3. shared_ptr ref count thread safety nuances.
+4. False sharing — detect and fix.
+5. Cache line alignment for hot data.
+6. RCU pattern in C++.
+7. Reader-writer lock vs mutex tradeoffs.
+8. condition_variable spurious wakeup handling.
+9. Coroutines for protocol state machines (C++20).
+10. Thread pool — work stealing vs fixed.
+11. Lock-free vs wait-free.
+12. ABA problem and CAS.
+13. Implement a thread-safe LRU.
+14. std::async vs std::thread vs thread pool.
+15. Memory leaks from cyclic shared_ptr — solution.
+16. unique_ptr custom deleter use case.
+17. Move-only types in containers.
+18. Detecting deadlocks at runtime.
+19. Priority inversion mitigation.
+20. NUMA-aware allocation.
+
+## 6. TOP 20 KUBERNETES/CLOUD-NATIVE TELECOM QUESTIONS
+
+1. SCTP in K8s — kernel module, IPVS, MetalLB.
+2. StatefulSet for CU-CP — when needed.
+3. Headless Service for SCTP endpoints.
+4. PodDisruptionBudget for CU-CP.
+5. Anti-affinity rules for HA pods.
+6. Topology spread constraints.
+7. Helm chart structure — values.yaml hierarchy.
+8. Rolling update strategy — surge, unavailable.
+9. Liveness, Readiness, Startup probes for CU-CP.
+10. Init containers — when used in telecom.
+11. ConfigMap vs Secret for AMF config.
+12. CNI choices — Multus for multiple interfaces (N2, F1-C, E1, Xn-C, OAM).
+13. SR-IOV for low-latency telecom workloads.
+14. HugePages, CPU pinning via Topology Manager.
+15. Prometheus metrics for CU-CP — what to expose.
+16. ELK / Loki for log aggregation.
+17. Service mesh (Istio) — telecom suitability.
+18. Operator pattern for CU-CP lifecycle.
+19. K8s upgrade strategy without dropping calls.
+20. Cluster autoscaling for elastic CU-CP.
+
+## 7. TOP 10 ARCHITECTURE DESIGN DISCUSSIONS
+
+1. Design a CU-CP for 1M UEs.
+2. Design HA for stateful telecom microservice.
+3. Design observability stack for CU-CP.
+4. Design rolling upgrade with zero call drop.
+5. Design slice-aware admission control.
+6. Design AMF selection logic.
+7. Design SCTP connection multiplexing across pods.
+8. Design intra-CU sharding strategy for UEs.
+9. Design CU-CP / CU-UP / DU disaggregation deployment topology.
+10. Design O-RAN-compliant CU with E2 interface.
+
+## 8. TOP HR / OWNERSHIP QUESTIONS
+
+1. Hardest technical decision you owned.
+2. Time you disagreed with senior architect — outcome.
+3. Time a feature missed deadline — what you did.
+4. Mentorship example.
+5. Customer escalation handled.
+6. Cross-team conflict resolution.
+7. Why leave Mavenir.
+8. Where in 3 years.
+9. Strength and weakness — with concrete telecom examples.
+10. A failure you owned.
+
+## 9. WEAKEST RESUME AREAS
+
+1. **No measurable KPIs anywhere** — every bullet is qualitative.
+2. **"Architecting" overclaim** at MTS-III without architect title.
+3. **XnAP listed but not detailed** — bluff risk.
+4. **No O-RAN, E2, A1, SMO mention** — gap if targeting Rakuten/O-RAN roles.
+5. **No mention of ASN.1 tooling** (asn1c, ffasn1, OSS Nokalva).
+6. **No conformance / interop test mention** (TS 38.523, PlugFest).
+7. **No CI/CD specifics** (Jenkins, GitLab CI, ArgoCD).
+8. **No observability stack** (Prometheus, Grafana, Loki, Jaeger).
+9. **No customer / deployment site mention** — is this lab or live?
+10. **"Active Load Balancing"** — undefined; needs clarification.
+11. **No security mention** (TLS for E1, IPsec for N2, security key handling).
+12. **No mobility procedure deep dive** in bullets despite XnAP listed.
+
+## 10. STRONGEST RESUME AREAS
+
+1. CU-CP microservice decomposition knowledge (gNBMgr, UEConnMgr, IWF).
+2. HA Cold Standby implementation — specific and unusual, shows real ownership if defended.
+3. Network Slicing breadth (admission, RRM, AMF selection, mobility).
+4. Multi-protocol exposure (NGAP, F1AP, E1AP, RRC, XnAP).
+5. Tooling depth (gdb, valgrind, wireshark, klocwork).
+6. GATE rank — academic credibility.
+
+## 11. BLUFF RISK AREAS
+
+1. **"Architecting"** — title vs reality mismatch.
+2. **XnAP** — needs concrete Xn handover deep dive ready.
+3. **Rel-17** — pick 3 features and own them, don't claim broad Rel-17.
+4. **"Mitigate inter-slice interference"** — interference is PHY/scheduler; CU-CP signals policy. Risky wording.
+5. **"PRB-quota signalling"** — know the exact F1AP IE.
+6. **"Active Load Balancing"** — define precisely.
+7. **"Carrier-grade"** — must have availability numbers.
+8. **"7:1 Cold Standby"** — unusual ratio, defend strongly.
+
+## 12. TOPICS TO STUDY URGENTLY (Priority Order)
+
+1. **TS 38.413 NGAP** — every UE-associated procedure.
+2. **TS 38.473 F1AP** — every UE Context procedure.
+3. **TS 38.463 E1AP** — every Bearer Context procedure.
+4. **TS 38.331 RRC** — full state machine, key messages, ASN.1.
+5. **TS 38.423 XnAP** — Xn handover, dual connectivity.
+6. **TS 23.501 / 23.502** — 5G system architecture and procedures.
+7. **TS 38.300** — overall NR description.
+8. **ASN.1 PER unaligned encoding** — manual encode/decode practice.
+9. **SCTP RFC 4960 + RFC 6525** — internals.
+10. **Network Slicing TS 23.501 §5.15 + TS 38.300 §16.4**.
+11. **O-RAN architecture** — E2, A1, O1 interfaces (for Rakuten, Mavenir O-RAN).
+12. **K8s for telecom** — Multus, SR-IOV, SCTP support.
+13. **Modern C++ concurrency** — atomics, memory orderings, lock-free.
+14. **Rel-17 features** — pick 5: RedCap, SDT, NR-Light, slice-based RRM, MBS.
+15. **Conformance testing** — TS 38.523 awareness.
+
+## 13. COMPANY-SPECIFIC QUESTION FORECAST
+
+**Mavenir (your current — internal mobility or lateral):**
+- Why leave?
+- Internal vs external candidate edge.
+- Compare Mavenir CU-CP vs competitor (Nokia/Samsung/Ericsson).
+
+**Nokia:**
+- AirScale / Cloud RAN architecture.
+- Heavy NGAP/F1AP IE deep dive.
+- C++ design patterns.
+- ASN.1 manual decoding on whiteboard.
+- ReefShark / Anyhaul awareness.
+
+**Samsung Networks:**
+- vRAN architecture.
+- O-RAN compliance.
+- DU-CU interaction in detail.
+- 5G SA deployments at Verizon, KDDI — what challenges.
+- Korean-style very detailed implementation questions.
+
+**Ericsson:**
+- ERS / Cloud RAN.
+- Heavy on 3GPP standards involvement.
+- TS reading exercise.
+- Conformance testing rigor.
+- "What's wrong with this RRC message" exercise.
+
+**Rakuten Symphony:**
+- O-RAN obsession — E2, A1, SMO, RIC.
+- Cloud-native at scale.
+- Open vRAN integration.
+- Microservices and DevOps maturity.
+
+**Qualcomm:**
+- Modem / UE side perspective — flip your interview lens.
+- L1/L2/L3 interaction.
+- Capability signaling.
+- Less CU-CP, more UE stack focus.
+
+**Jio (Reliance):**
+- Indigenous 5G stack questions.
+- Scale at 400M+ subscribers.
+- Cost-optimized deployment.
+- Operator-side perspective.
+- O-RAN integration with their RAN.
+
+## 14. 30-DAY PREPARATION ROADMAP
+
+**Week 1 — Protocol Foundation**
+- Day 1-2: NGAP full procedure read (TS 38.413). Make flashcards for every procedure.
+- Day 3-4: F1AP (TS 38.473). Same drill.
+- Day 5: E1AP (TS 38.463).
+- Day 6: XnAP (TS 38.423). Especially handover.
+- Day 7: RRC (TS 38.331) state machine + key messages.
+
+**Week 2 — Call Flows & Scenarios**
+- Day 8: SA UE Registration full flow — draw 30+ times.
+- Day 9: PDU Session Establishment.
+- Day 10: Xn Handover.
+- Day 11: N2 Handover.
+- Day 12: NSA Option 3x — bearer add/modify.
+- Day 13: RRC Reestablishment, Resume, Reject.
+- Day 14: Paging flows (CN and RAN).
+
+**Week 3 — System Design & HA**
+- Day 15-16: Your own HA design — write down every detail, RTO, failover steps.
+- Day 17: K8s for telecom (Multus, SR-IOV, SCTP).
+- Day 18: Rolling upgrade design.
+- Day 19: Slicing design end-to-end.
+- Day 20: AMF selection, mobility under slicing.
+- Day 21: Observability and KPIs.
+
+**Week 4 — C++, Debugging, Mock**
+- Day 22-23: Modern C++ concurrency drills.
+- Day 24: ASN.1 PER hand encode/decode.
+- Day 25: gdb / valgrind / sanitizers refresh.
+- Day 26: Wireshark NGAP/F1AP filter practice.
+- Day 27-28: Two mock interviews (peer or paid).
+- Day 29: HR / behavioral STAR answers.
+- Day 30: Light review, rest.
+
+## 15. MOCK INTERVIEW PLAN
+
+Run three 60-minute mocks:
+- Mock 1: Pure protocol (NGAP/F1AP/E1AP IE deep dive + call flows).
+- Mock 2: System design (HA, slicing, K8s).
+- Mock 3: C++ + debugging + behavioral.
+
+Record yourself. Listen back. Note every "um," every vague answer, every time you said "we" instead of "I."
+
+## 16. REVISION CHEATSHEET
+
+- NGAP = N2 = RAN↔AMF. SCTP on port 38412. ASN.1 PER aligned (NGAP uses aligned!). Wait — NGAP uses **aligned PER**, F1AP/E1AP/XnAP also aligned. (Verify per spec — RRC uses unaligned PER. This is a classic trap.)
+- F1AP = F1-C = CU-CP↔DU. SCTP port 38472.
+- E1AP = E1 = CU-CP↔CU-UP. SCTP port 38462.
+- XnAP = Xn-C = gNB↔gNB. SCTP port 38422.
+- NRPPa = positioning, over NGAP transparent container.
+- RRC = Uu → uses **unaligned PER**.
+- S-NSSAI = SST (1B) + SD (3B optional).
+- 5G-GUTI structure: PLMN + AMF Region ID + AMF Set ID + AMF Pointer + 5G-TMSI.
+- RAN-UE-NGAP-ID: 32 bits, allocated by RAN, unique per AMF association.
+- AMF-UE-NGAP-ID: 40 bits, allocated by AMF, unique per RAN association.
+- gNB-CU UE F1AP ID: allocated by CU. gNB-DU UE F1AP ID: allocated by DU. Both 32 bits.
+- DRB ID: 5 bits (1-32). SRB ID: SRB0,1,2,3,4.
+- QoS Flow ID (QFI): 6 bits (0-63).
+- 5QI: standardized QoS identifiers (1=conv voice, 9=default, 82=URLLC etc.).
+
+## 17. RAPID-FIRE QUIZ (Test Yourself)
+
+1. Port for F1-C SCTP? → 38472
+2. Who allocates AMF-UE-NGAP-ID? → AMF
+3. Cause IE in NGAP UE Context Release Command — give 3 values. → Normal release, Radio Network reason, Transport, NAS, Protocol, Misc.
+4. NGAP procedure to update AMF about gNB config? → RAN Configuration Update
+5. RRC message on SRB0 carrying NAS Registration Request? → RRCSetupComplete (NAS dedicated info)
+6. Which interface for inter-gNB handover signaling? → Xn-C (or N2 if no Xn)
+7. What encodes RRC IE in NGAP? → Transparent container (OCTET STRING)
+8. SCTP heartbeat interval default? → 30 seconds (RFC 4960)
+9. RRC INACTIVE introduced in which release? → Rel-15
+10. RedCap UEs — which release? → Rel-17
+
+## 18. DEEP PROTOCOL FLOW: SA UE INITIAL REGISTRATION (Memorize)
+
+```
+UE → DU: PRACH preamble
+DU → UE: RAR
+UE → DU: RRCSetupRequest (SRB0)
+DU → UE: RRCSetup (allocates SRB1)
+DU → CU-CP: F1AP Initial UL RRC Message Transfer (carries RRCSetupRequest, DU UE F1AP ID, NR CGI, C-RNTI)
+UE → DU: RRCSetupComplete (SRB1, contains 5GMM Registration Request)
+DU → CU-CP: F1AP UL RRC Message Transfer
+CU-CP: AMF Selection (based on 5G-S-TMSI/GUAMI or NSSAI)
+CU-CP → AMF: NGAP Initial UE Message (NAS-PDU=RegistrationRequest, RAN-UE-NGAP-ID, User Location, RRC Estab Cause, 5G-S-TMSI)
+AMF → CU-CP: NGAP DL NAS Transport (AuthenticationRequest)
+CU-CP → DU: F1AP DL RRC Message Transfer
+DU → UE: DLInformationTransfer (NAS AuthenticationRequest)
+... Auth, Security Mode (NAS + AS), Identity ...
+AMF → CU-CP: NGAP Initial Context Setup Request (UE AMBR, GUAMI, Allowed NSSAI, UE Security Capabilities, Security Key, NAS-PDU=RegistrationAccept)
+CU-CP → DU: F1AP UE Context Setup Request (SRB2 setup, security info, RRC container possibly with SMC)
+DU → CU-CP: F1AP UE Context Setup Response
+CU-CP → DU: F1AP DL RRC Message Transfer (RRCReconfiguration with NAS RegistrationAccept)
+DU → UE: RRCReconfiguration
+UE → DU: RRCReconfigurationComplete
+DU → CU-CP: F1AP UL RRC Message Transfer
+CU-CP → AMF: NGAP Initial Context Setup Response
+UE → DU: ULInformationTransfer (NAS RegistrationComplete)
+DU → CU-CP → AMF: ... NGAP UL NAS Transport
+```
+
+## 19. STATE MACHINE — RRC
+
+```
+RRC_IDLE
+  ↓ RRCSetupRequest / RRCSetup / RRCSetupComplete
+RRC_CONNECTED
+  ↓ RRCRelease with suspendConfig
+RRC_INACTIVE
+  ↓ RRCResumeRequest / RRCResume / RRCResumeComplete
+RRC_CONNECTED
+  ↓ RRCRelease (without suspend)
+RRC_IDLE
+
+Failure paths:
+RRC_CONNECTED → (radio link failure) → RRCReestablishmentRequest → RRCReestablishment → RRCReestablishmentComplete → RRC_CONNECTED
+or → RRCSetup fallback → RRC_CONNECTED (NAS recovery)
+```
+
+## 20. IMPORTANT 3GPP CONCEPTS YOU MAY BE MISSING
+
+1. **Conditional Handover (CHO)** — Rel-16, CU-CP prepares multiple target cells.
+2. **DAPS Handover** — Rel-16, dual active protocol stack.
+3. **NR Sidelink (PC5)** — V2X.
+4. **NTN (Non-Terrestrial Networks)** — Rel-17.
+5. **MBS** — Multicast Broadcast Service Rel-17.
+6. **SDT** — Small Data Transmission in INACTIVE state, Rel-17.
+7. **RedCap** — Reduced Capability UE, Rel-17.
+8. **Slice-based cell reselection** — Rel-17.
+9. **Multi-USIM** — Rel-17.
+10. **AI/ML for RAN** — Rel-18 (knowledge edge).
+11. **IAB** — Integrated Access and Backhaul, Rel-16.
+12. **NR-U** — Unlicensed, Rel-16.
+13. **eDRX** — Extended DRX.
+14. **CIoT 5G** — small data optimizations.
+15. **Mobility History Information** — UE feedback for SON.
+
+---
+
+# 🎯 FINAL VERDICT
+
+Your resume is **mid-senior level**, not principal. The biggest gaps are: (1) no quantified impact, (2) "architecting" overclaim, (3) thin O-RAN exposure, (4) buzzword-stacked skills section that invites traps. Your strongest defensible territory is **HA Cold Standby + Network Slicing for CU-CP** — own these deeply, know every nuance, every IE, every failure mode.
+
+**If you cannot answer 80% of the Top 50 in this document cold, you are not ready.** Drill until you can.
+
+Now — pick ONE area you want me to start a **live mock interview** on. I'll ask one question, you answer, and I will brutally critique. Say "Start mock on [topic]" and we begin.
