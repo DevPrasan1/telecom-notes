@@ -156,6 +156,18 @@ body {
   font-weight: 500;
 }
 
+.header-credit-link {
+  color: var(--accent-primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.header-credit-link:hover {
+  color: var(--text-main);
+  text-decoration: underline;
+}
+
 .header-controls {
   display: flex;
   align-items: center;
@@ -997,4 +1009,29 @@ body {
   .card-body {
     padding: 14px 16px 20px;
   }
+}
+
+/* App Footer */
+.app-footer {
+  margin-top: 40px;
+  padding: 24px 16px 12px;
+  text-align: center;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent-primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.footer-link:hover {
+  color: var(--text-main);
+  text-decoration: underline;
 }

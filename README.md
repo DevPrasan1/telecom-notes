@@ -1,4 +1,4 @@
-# 🌐 5G Networking Notes & Q&A Viewer
+# 🌐 Telecom Notes & Q&A Viewer
 
 An interactive, high-performance, mobile-first web application designed for reviewing 5G Protocol & Telecom interview questions and technical notes.
 
